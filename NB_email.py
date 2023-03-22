@@ -7,43 +7,36 @@ from sklearn.pipeline import Pipeline
 import streamlit as st
 
 st.title("Email Spam using Naive Bayes")
+url = 'https://raw.githubusercontent.com/Sohamm21/NaiveBayes-Spam-Mail/main/spam.csv';
+df = pd.read_csv(url, encoding="ISO-8859-1")
+st.write(df)
+df = df.rename(columns={'v1': 'class', 'v2': 'sms'})
+df.drop(['Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4'], axis='columns', inplace=True)
 
-uploaded_file = st.file_uploader("Choose a file")
+# converting categorical data to numerical data
+df['spam'] = df['class'].apply(lambda x:1 if x=='spam' else 0)
 
-# Read the CSV data
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file, encoding="ISO-8859-1")
-    st.write(df)
-    df = df.rename(columns={'v1': 'class', 'v2': 'sms'})
-    df.drop(['Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4'], axis='columns', inplace=True)
-    
-    # converting categorical data to numerical data
-    df['spam'] = df['class'].apply(lambda x:1 if x=='spam' else 0)
+df.drop('class', axis='columns', inplace=True)
 
-    df.drop('class', axis='columns', inplace=True)
-    
-    X_train, X_test, y_train, y_test = train_test_split(df.sms, df.spam)
-    
-    clf = Pipeline([
-        ('vectorizer', CountVectorizer()),
-        ('nb', MultinomialNB())
-    ])
-    
-    # train the model
-    clf.fit(X_train, y_train)
-    score = clf.score(X_test, y_test) * 100
-    
-    st.write('The accuracy is:', score)
+X_train, X_test, y_train, y_test = train_test_split(df.sms, df.spam)
 
-    email = st.text_input("Enter an email message")
+clf = Pipeline([
+    ('vectorizer', CountVectorizer()),
+    ('nb', MultinomialNB())
+])
 
-    # Make a prediction using the machine learning model
-    if email:
-        result = clf.predict([email])
-        if result[0] == 0:
-            st.write('Not a spam message')
-        else:
-            st.write('Spam message!')
-else:
-    st.warning("Please upload a file.")
-    
+# train the model
+clf.fit(X_train, y_train)
+score = clf.score(X_test, y_test) * 100
+
+st.write('The accuracy is:', score)
+
+email = st.text_input("Enter an email message")
+
+# Make a prediction using the machine learning model
+if email:
+    result = clf.predict([email])
+    if result[0] == 0:
+        st.write('Not a spam message')
+    else:
+        st.write('Spam message!')
